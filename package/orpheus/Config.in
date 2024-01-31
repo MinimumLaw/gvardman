@@ -1,0 +1,4 @@
+config BR2_PACKAGE_ORPHEUS
+	bool "ORPHEUS SPO"
+	help
+	  Required for Orphey-M device

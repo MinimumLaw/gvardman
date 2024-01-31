@@ -1,0 +1,2 @@
+source "$BR2_EXTERNAL_GVARDMAN_PATH/package/orpheus/Config.in"
+source "$BR2_EXTERNAL_GVARDMAN_PATH/package/rk3399pro-blobs/Config.in"

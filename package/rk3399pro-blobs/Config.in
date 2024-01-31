@@ -1,0 +1,4 @@
+config BR2_PACKAGE_RK3399PRO_BLOBS
+	bool "Binary components for Firefly RK3399Pro board"
+	help
+	  We need some binary files for DDR init and initial boot procedure
