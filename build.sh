@@ -9,7 +9,7 @@ if [ -z $BUILDROOT_BRANCH ]; then
 fi
 
 export BUILDROOT_EXT_TREE=`pwd`
-export OUTPUT_DIR=`pwd`/build/orangepi3_lts
+export OUTPUT_DIR=`pwd`/output/orangepi3_lts
 export NPRC_ARGS="-j `cat /proc/cpuinfo | grep processor | wc -l`"
 export MAKE_ARGS="${NPRC_ARGS} O=${OUTPUT_DIR} BR2_EXTERNAL=${BUILDROOT_EXT_TREE} -C ${BUILDROOT_BASE}"
 
