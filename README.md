@@ -21,14 +21,14 @@ Prepare:
 6. Run build process
  $ ./build.sh
 7. Just wait for competion...
-8. You have output sdcard.img into build/orangepi3_lts/images directory
- $ ls build/orangepi3_lts/images
+8. You have output sdcard.img into output/orangepi3_lts/images directory
+ $ ls output/orangepi3_lts/images
  bl31.bin   extlinux  orangepi3-lts.dtb  rootfs.cpio     sdcard.img  u-boot-sunxi-with-spl.bin
  boot.vfat  Image     params.ext2        rootfs.cpio.xz  u-boot.bin
  $
 9. You may write then to sd-card with diskdup utility
- $ sudo dd if=${OUTPUT_DIR}/images/sdcard.img of=/dev/flash bs=1M status=progress conv=sync
-10. Cross-compiler will be in build/orangepi3_lts/host directory, use them as you want
+ $ sudo dd if=output/orangepi3_lts/images/sdcard.img of=/dev/flash bs=1M status=progress conv=sync
+10. Cross-compiler will be in output/orangepi3_lts/host directory, use them as you want
 11. Example of private buildroot packages you can see in package/* directory or in buildroot
     documentation https://buildroot.org/downloads/manual/manual.html#adding-packages
 
