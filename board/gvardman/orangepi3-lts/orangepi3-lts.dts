@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 // Copyright (C) 2019 Ondřej Jirman <megous@megous.com>
 
-#define SPI_GPIO
-
 /dts-v1/;
 
 #include "allwinner/sun50i-h6.dtsi"
@@ -87,30 +85,6 @@
 		gpio = <&pio 3 6 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
 	};
-#ifdef SPI_GPIO
-	spi {
-		compatible = "spi-gpio";
-		#address-cells = <0x1>;
-		#size-cells = <0x0>;
-		sck-gpio  = <&pio 7 4 0>; /* PH4 */
-		miso-gpio = <&pio 7 5 0>; /* PH5 */
-		mosi-gpio = <&pio 7 6 0>; /* PH6 */
-		cs-gpios  = <&pio 7 3 0>; /* PH3 */
-		num-chipselects = <1>;
-
-		xpt2046@0 { /* FixMe: is compatible to ads7846? */
-			reg = <0>;	/* CS0 */
-			compatible = "ti,tsc2046";
-			vcc-supply = <&reg_vcc3v3>;
-			interrupt-parent = <&pio>;
-			interrupts = <3 21 IRQ_TYPE_LEVEL_LOW>; /* FixMe: PD21 (3 21), Active Low (0) */
-			pendown-gpio = <&pio 3 21 GPIO_ACTIVE_LOW>;
-			wakeup-source;
-
-			status = "okay";
-		};
-	};
-#endif
 };
 
 &cpu0 {
@@ -332,30 +306,37 @@
 };
 
 &uart3 { /* 26pin header UART. FixMe: pinctrl??? */
+	pinctrl-names = "default";
+	pinctrl-0 = <&uart3_pd_pins>;
 	status = "okay";
 };
 
-#ifndef SPI_GPIO
-&spi1 { /* 26pin header SPI interface */
+/*
+ * WARNING!
+ * 26pin header SPI interface use non standart layout! Se comment
+ * in pio section bellow!
+ */
+&spi1 {
 	pinctrl-names = "default";
-	pinctrl-0 = <&spi1_pins>, <&spi1_cs_pin>;
-	cs-gpios = <0>, <&r_pio 0 8 GPIO_ACTIVE_HIGH>; /* native, PL8 */
-	num-cs = <2>;
+	pinctrl-0 = <&spi1_pins>;
+	cs-gpios = <&r_pio 0 8 GPIO_ACTIVE_LOW>;	/* CS0 - PL8 */
+	num-cs = <1>;
 	status = "okay";
+	#address-cells = <1>;
+	#size-cells = <0>;
 
-	xpt2046@1 { /* FixMe: is compatible to ads7846? */
-		reg = <1>;	/* CS1 */
+	xpt2046@0 { /* FixMe: is compatible to ads7846? */
+		reg = <0>;	/* CS0 */
 		spi-max-frequency = <500000>;
-		compatible = "ti,ads7846";
-
-		vcc-supply = <&reg_vcc3v3>;
 		interrupt-parent = <&pio>;
-		interrupts = <3 21 0>; /* FixMe: PD21 (3 21), Active Low (0) */
-		/* pendown-gpios = <&pio 3 21 GPIO_ACTIVE_LOW>;  PD21 - WTF??? */
+		interrupt-names = "ts-irq";
+		interrupts = <7 3 IRQ_TYPE_LEVEL_LOW>; /* PD21 connected to CS0 */
+		pendown-gpio = <&pio 3 21 GPIO_ACTIVE_LOW>;
+		compatible = "ti,tsc2046";
+		vcc-supply = <&reg_vcc3v3>;
 		status = "okay";
 	};
 };
-#endif
 
 &i2c0 { /* 26pin heder I2C interface */
 	pinctrl-names = "default";
@@ -382,4 +363,21 @@
 
 &usb3phy {
 	status = "okay";
+};
+
+&pio {
+		uart3_pd_pins: uart2-pd-pins {
+			pins = "PD23", "PD24";
+			function = "uart3";
+		};
+		/*
+		 * FixMe: PH3 default SPI1 CS, but only PB, PF, PG and PH
+		 * can trigger interrupt on 26-pin compatible connector.
+		 * We use PL8 as SPI1 GPI CS, and PH3 as interrupt source.
+		 * Require hardware short-circuit from 24 and 22 pins.
+		 */
+		gpio_irq_pin: gpio-irq-pin {
+			pins = "PH3";
+			function = "gpio_in";
+		};
 };

@@ -28,6 +28,8 @@ Prepare:
  $
 9. You may write then to sd-card with diskdup utility
  $ sudo dd if=output/orangepi3_lts/images/sdcard.img of=/dev/flash bs=1M status=progress conv=sync
+   For console access use username "root" and password "gvardman", you alse can use
+   this accont via preconfigured ssh connection.
 10. Cross-compiler will be in output/orangepi3_lts/host directory, use them as you want
 11. Example of private buildroot packages you can see in package/* directory or in buildroot
     documentation https://buildroot.org/downloads/manual/manual.html#adding-packages

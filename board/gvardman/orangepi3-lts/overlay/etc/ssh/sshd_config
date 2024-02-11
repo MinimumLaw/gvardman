@@ -1,0 +1,10 @@
+#######################################
+###################################### 
+## OpenSSH daemaon configuration file
+#
+
+# Allow root login (for debugging)
+PermitRootLogin yes
+
+# override default of no subsystems
+Subsystem	sftp	/usr/libexec/sftp-server
