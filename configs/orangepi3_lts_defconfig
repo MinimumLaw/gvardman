@@ -1,4 +1,5 @@
 BR2_aarch64=y
+BR2_TOOLCHAIN_BUILDROOT_CXX=y
 BR2_DL_DIR="$(BR2_EXTERNAL_GVARDMAN_PATH)/downloaded_sources"
 BR2_TARGET_GENERIC_HOSTNAME="gvardman"
 BR2_TARGET_GENERIC_ISSUE="Anesthesia Monitor System Console"
