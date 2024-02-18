@@ -26,6 +26,7 @@
 
 	connector {
 		compatible = "hdmi-connector";
+		hdmi-pwr-supply = <&reg_vcc5v>;
 		ddc-en-gpios = <&pio 7 2 GPIO_ACTIVE_HIGH>; /* PH2 */
 		type = "a";
 
