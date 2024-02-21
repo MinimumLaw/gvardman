@@ -7,3 +7,7 @@ downloaded_sources
 
 # build and output images directory
 output
+
+# working copy of mda software
+board/gvardman/orangepi3-lts/overlay/usr/local/bin/mda
+board/gvardman/orangepi3-lts/overlay/usr/local/bin/mount_usbstorage.sh
