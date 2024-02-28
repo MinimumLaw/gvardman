@@ -16,6 +16,7 @@
 	aliases {
 		serial0 = &uart0;
 		serial1 = &uart3;
+		serial2 = &r_uart;
 		mmc0 = &mmc2;
 		mmc1 = &mmc0;
 	};
@@ -85,6 +86,25 @@
 		regulator-always-on;
 		gpio = <&pio 3 6 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
+	};
+
+	/*
+	 * Add non-present bindings:
+	 *	- r_uart on PL2, PL3
+	 */
+	soc {
+		r_uart: serial@7080000 {
+			compatible = "snps,dw-apb-uart";
+			reg = <0x07080000 0x400>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&r_uart_pins>;
+			interrupts = <GIC_SPI 106 IRQ_TYPE_LEVEL_HIGH>;
+			reg-shift = <2>;
+			reg-io-width = <4>;
+			clocks = <&r_ccu CLK_R_APB2_UART>;
+			resets = <&r_ccu RST_R_APB2_UART>;
+			status = "okay";
+		};
 	};
 };
 
@@ -367,18 +387,25 @@
 };
 
 &pio {
-		uart3_pd_pins: uart2-pd-pins {
-			pins = "PD23", "PD24";
-			function = "uart3";
-		};
-		/*
-		 * FixMe: PH3 default SPI1 CS, but only PB, PF, PG and PH
-		 * can trigger interrupt on 26-pin compatible connector.
-		 * We use PL8 as SPI1 GPI CS, and PH3 as interrupt source.
-		 * Require hardware short-circuit from 24 and 22 pins.
-		 */
-		gpio_irq_pin: gpio-irq-pin {
-			pins = "PH3";
-			function = "gpio_in";
-		};
+	uart3_pd_pins: uart2-pd-pins {
+		pins = "PD23", "PD24";
+		function = "uart3";
+	};
+	/*
+	 * FixMe: PH3 default SPI1 CS, but only PB, PF, PG and PH
+	 * can trigger interrupt on 26-pin compatible connector.
+	 * We use PL8 as SPI1 GPI CS, and PH3 as interrupt source.
+	 * Require hardware short-circuit from 24 and 22 pins.
+	 */
+	gpio_irq_pin: gpio-irq-pin {
+		pins = "PH3";
+		function = "gpio_in";
+	};
+};
+
+&r_pio {
+	r_uart_pins: r-uart-pins {
+		pins = "PL2", "PL3";
+		function = "s_uart";
+	};
 };
