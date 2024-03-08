@@ -1,6 +1,6 @@
 #!/bin/sh
 
-/bin/echo "Remount read-only..."
+/bin/echo "Remount read-write..."
 
 /bin/mount -o remount,rw /dev/mmcblk1p3 /mnt
 if test $? = '0'; then

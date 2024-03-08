@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+// Copyright (C) 2023 Jernej Skrabec <jernej.skrabec@gmail.com>
 // Copyright (C) 2019 Ondřej Jirman <megous@megous.com>
 
 /dts-v1/;
@@ -14,11 +15,12 @@
 	compatible = "xunlong,orangepi-3-lts", "allwinner,sun50i-h6";
 
 	aliases {
-		serial0 = &uart0;
-		serial1 = &uart3;
-		serial2 = &r_uart;
-		mmc0 = &mmc2;
-		mmc1 = &mmc0;
+		ethernet0 = &emac;
+		serial0 = &uart0;	/* Debug console */
+		serial1 = &uart3;	/* MDA interface */
+		serial2 = &r_uart;	/* MDA controller */
+		mmc0 = &mmc2;		/* eMMC    */
+		mmc1 = &mmc0;		/* SD-Card */
 	};
 
 	chosen {
@@ -27,7 +29,6 @@
 
 	connector {
 		compatible = "hdmi-connector";
-		hdmi-pwr-supply = <&reg_vcc5v>;
 		ddc-en-gpios = <&pio 7 2 GPIO_ACTIVE_HIGH>; /* PH2 */
 		type = "a";
 
@@ -48,15 +49,15 @@
 	leds {
 		compatible = "gpio-leds";
 
-		led-0 {
-			label = "orangepi:red:power";
-			gpios = <&r_pio 0 4 GPIO_ACTIVE_HIGH>; /* PL4 */
+		status {
+			label = "green-led";
+			gpios = <&r_pio 0 7 GPIO_ACTIVE_HIGH>; /* PL7 */
 			default-state = "on";
 		};
 
-		led-1 {
-			label = "orangepi:green:status";
-			gpios = <&r_pio 0 7 GPIO_ACTIVE_HIGH>; /* PL7 */
+		power {
+			label = "red-led";
+			gpios = <&r_pio 0 4 GPIO_ACTIVE_HIGH>; /* PL4 */
 		};
 	};
 
@@ -69,43 +70,56 @@
 		regulator-always-on;
 	};
 
-	reg_vcc3v3: vcc3v3 {
-		/* board wide 3.3V supply directly from the DC jack */
-		compatible = "regulator-fixed";
-		regulator-name = "vcc-3v3";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		regulator-always-on;
-	};
-
 	reg_gmac_3v3: gmac-3v3 {
 		compatible = "regulator-fixed";
 		regulator-name = "vcc-gmac-3v3";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
-		regulator-always-on;
+		startup-delay-us = <150000>;
 		gpio = <&pio 3 6 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
 	};
 
-	/*
-	 * Add non-present bindings:
-	 *	- r_uart on PL2, PL3
-	 */
-	soc {
-		r_uart: serial@7080000 {
-			compatible = "snps,dw-apb-uart";
-			reg = <0x07080000 0x400>;
-			pinctrl-names = "default";
-			pinctrl-0 = <&r_uart_pins>;
-			interrupts = <GIC_SPI 106 IRQ_TYPE_LEVEL_HIGH>;
-			reg-shift = <2>;
-			reg-io-width = <4>;
-			clocks = <&r_ccu CLK_R_APB2_UART>;
-			resets = <&r_ccu RST_R_APB2_UART>;
-			status = "okay";
-		};
+	reg_vcc33_wifi: vcc33-wifi {
+		/* Always on 3.3V regulator for WiFi and BT */
+		compatible = "regulator-fixed";
+		regulator-name = "vcc33-wifi";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		enable-active-high;
+		gpio = <&pio 7 7 GPIO_ACTIVE_HIGH>; /* PH7 */
 	};
+
+	reg_vcc_wifi_io: vcc-wifi-io {
+		/* Always on 1.8V/300mA regulator for WiFi and BT IO */
+		compatible = "regulator-fixed";
+		regulator-name = "vcc-wifi-io";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+		regulator-always-on;
+		vin-supply = <&reg_vcc33_wifi>;
+	};
+
+	wifi_pwrseq: wifi-pwrseq {
+		compatible = "mmc-pwrseq-simple";
+		clocks = <&rtc 1>;
+		clock-names = "ext_clock";
+		reset-gpios = <&r_pio 1 3 GPIO_ACTIVE_LOW>; /* PM3 */
+		post-power-on-delay-ms = <200>;
+	};
+};
+
+&ac200_codec {
+	avcc-supply = <&reg_aldo2>;
+	status = "okay";
+};
+
+&ac200_pwm_clk {
+	status = "okay";
+};
+
+&analog {
+	status = "okay";
 };
 
 &cpu0 {
@@ -128,12 +142,24 @@
 	status = "okay";
 };
 
+&emac {
+	pinctrl-names = "default";
+	pinctrl-0 = <&ext_rgmii_pins>;
+	phy-mode = "rgmii-id";
+	phy-handle = <&ext_rgmii_phy>;
+	phy-supply = <&reg_gmac_3v3>;
+	allwinner,rx-delay-ps = <200>;
+	allwinner,tx-delay-ps = <300>;
+	status = "okay";
+};
+
 &gpu {
 	mali-supply = <&reg_dcdcc>;
 	status = "okay";
 };
 
 &hdmi {
+	hvcc-supply = <&reg_bldo2>;
 	status = "okay";
 };
 
@@ -143,14 +169,11 @@
 	};
 };
 
-&emac {
-	pinctrl-names = "default";
-	pinctrl-0 = <&ext_rgmii_pins>;
-	phy-mode = "rgmii-id";
-	phy-handle = <&ext_rgmii_phy>;
-	phy-supply = <&reg_gmac_3v3>;
-	allwinner,rx-delay-ps = <1500>;
-	allwinner,tx-delay-ps = <700>;
+&i2c3 {
+	status = "okay";
+};
+
+&i2s3 {
 	status = "okay";
 };
 
@@ -158,7 +181,7 @@
 	ext_rgmii_phy: ethernet-phy@1 {
 		compatible = "ethernet-phy-ieee802.3-c22";
 		reg = <1>;
-
+		motorcomm,clk-out-frequency-hz = <125000000>;
 		reset-gpios = <&pio 3 14 GPIO_ACTIVE_LOW>; /* PD14 */
 		reset-assert-us = <15000>;
 		reset-deassert-us = <40000>;
@@ -173,11 +196,15 @@
 };
 
 &mmc2 {
-	vmmc-supply = <&reg_cldo1>;
-	vqmmc-supply = <&reg_bldo2>;
-	cap-mmc-hw-reset;
-	non-removable;
+	/* Fix compatible - no Armbian mmc patches applyed */
+	compatible = "allwinner,sun50i-h6-emmc",
+		     "allwinner,sun50i-a64-emmc";
+	vmmc-supply = <&reg_cldo1>; /* cldo2, cldo3 shorted to VCC33-WIFI page 14 */
+	vqmmc-supply = <&reg_bldo2>; /* aldo1, bldo3 shorted to VCC-WIFI-IO page 14 */
 	bus-width = <8>;
+	non-removable;
+	cap-mmc-hw-reset;
+	mmc-hs200-1_8v;
 	status = "okay";
 };
 
@@ -192,7 +219,13 @@
 &pio {
 	vcc-pc-supply = <&reg_bldo2>;
 	vcc-pd-supply = <&reg_cldo1>;
-	vcc-pg-supply = <&reg_vcc3v3>;
+	vcc-pg-supply = <&reg_bldo3>;
+	vcc-pl-supply = <&reg_aldo1>;
+	vcc-pm-supply = <&reg_bldo3>;
+};
+
+&pwm {
+	status = "okay";
 };
 
 &r_i2c {
@@ -228,9 +261,10 @@
 				regulator-min-microvolt = <3300000>;
 				regulator-max-microvolt = <3300000>;
 				regulator-name = "vcc33-audio-tv-ephy-mac";
+				regulator-enable-ramp-delay = <100000>;
 			};
 
-			/* ALDO3 is shorted to CLDO1 */
+			/* ALDO3 is shorted to CLDO1 - use fixed 3,3V mode */
 			reg_aldo3: aldo3 {
 				regulator-always-on;
 				regulator-min-microvolt = <3300000>;
@@ -252,8 +286,11 @@
 				regulator-name = "vcc-efuse-pcie-hdmi-pc";
 			};
 
-			bldo3 {
-				/* unused */
+			reg_bldo3: bldo3 {
+				regulator-always-on;
+				regulator-min-microvolt = <1800000>;
+				regulator-max-microvolt = <1800000>;
+				regulator-name = "vcc-pm-pg-dcxoio-wifi";
 			};
 
 			bldo4 {
@@ -312,31 +349,40 @@
 	};
 };
 
-&r_ir {
-	status = "okay";
-};
-
 &rtc {
 	clocks = <&ext_osc32k>;
 };
 
-&uart0 { /* Console UART for debugging */
+&uart0 { /* Dedicated debug UART */
 	pinctrl-names = "default";
 	pinctrl-0 = <&uart0_ph_pins>;
 	status = "okay";
 };
 
-&uart3 { /* 26pin header UART. FixMe: pinctrl??? */
+&uart3 { /* PD23 TX, PD24 RX or pins 11 and 9 of 26pin connector */
 	pinctrl-names = "default";
-	pinctrl-0 = <&uart3_pd_pins>;
+	pinctrl-0 = <&uart3_pins>;
+	status = "okay";
+};
+
+&r_uart { /* PL2 TX, PL3 RX or pins 8 and 10 of 26pin connector */
+	status = "okay";
+};
+
+&i2c0 { /* PD25 SCK, PD26 SDA or pin 5 and 3 of 26pin connector */
 	status = "okay";
 };
 
 /*
  * WARNING!
- * 26pin header SPI interface use non standart layout! Se comment
- * in pio section bellow!
+ * 26pin header SPI interface use non standart layout! 
+ *
+ * PH3 default SPI1 CS, but only PB, PF, PG and PH can
+ * trigger interrupt on 26-pin compatible connector.
+ * We use PL8 as SPI1 GPI CS, and PH3 as interrupt source.
+ * Require hardware short-circuit from 24 and 22 pins.
  */
+
 &spi1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&spi1_pins>;
@@ -346,7 +392,7 @@
 	#address-cells = <1>;
 	#size-cells = <0>;
 
-	xpt2046@0 { /* FixMe: is compatible to ads7846? */
+	xpt2046@0 {
 		reg = <0>;	/* CS0 */
 		spi-max-frequency = <500000>;
 		interrupt-parent = <&pio>;
@@ -354,24 +400,21 @@
 		interrupts = <7 3 IRQ_TYPE_LEVEL_LOW>; /* PD21 connected to CS0 */
 		pendown-gpio = <&pio 3 21 GPIO_ACTIVE_LOW>;
 		compatible = "ti,tsc2046";
+		vcc-supply = <&reg_vcc33_wifi>;
 
+		/* Generic tuning */
+		touchscreen-average-samples = <100>;
+		/* Vendor specific tuning */
 		ti,x-plate-ohms = /bits/ 16 <60>;
-		ti,debounce-max = /bits/ 16 <100>;
 		ti,debounce-tol = /bits/ 16 <2>;
 		ti,debounce-rep = /bits/ 16 <1>;
 		ti,settle-delay-usec = /bits/ 16 <20>;
 		ti,penirq-recheck-delay-usecs = /bits/ 16 <20>;
 
-		vcc-supply = <&reg_vcc3v3>;
 		status = "okay";
 	};
 };
 
-&i2c0 { /* 26pin heder I2C interface */
-	pinctrl-names = "default";
-	pinctrl-0 = <&i2c0_pins>;
-	status = "okay";
-};
 
 &usb2otg {
 	/*
@@ -392,28 +435,4 @@
 
 &usb3phy {
 	status = "okay";
-};
-
-&pio {
-	uart3_pd_pins: uart2-pd-pins {
-		pins = "PD23", "PD24";
-		function = "uart3";
-	};
-	/*
-	 * FixMe: PH3 default SPI1 CS, but only PB, PF, PG and PH
-	 * can trigger interrupt on 26-pin compatible connector.
-	 * We use PL8 as SPI1 GPI CS, and PH3 as interrupt source.
-	 * Require hardware short-circuit from 24 and 22 pins.
-	 */
-	gpio_irq_pin: gpio-irq-pin {
-		pins = "PH3";
-		function = "gpio_in";
-	};
-};
-
-&r_pio {
-	r_uart_pins: r-uart-pins {
-		pins = "PL2", "PL3";
-		function = "s_uart";
-	};
 };
