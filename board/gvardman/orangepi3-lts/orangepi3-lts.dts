@@ -354,6 +354,14 @@
 		interrupts = <7 3 IRQ_TYPE_LEVEL_LOW>; /* PD21 connected to CS0 */
 		pendown-gpio = <&pio 3 21 GPIO_ACTIVE_LOW>;
 		compatible = "ti,tsc2046";
+
+		ti,x-plate-ohms = /bits/ 16 <60>;
+		ti,debounce-max = /bits/ 16 <100>;
+		ti,debounce-tol = /bits/ 16 <2>;
+		ti,debounce-rep = /bits/ 16 <1>;
+		ti,settle-delay-usec = /bits/ 16 <20>;
+		ti,penirq-recheck-delay-usecs = /bits/ 16 <20>;
+
 		vcc-supply = <&reg_vcc3v3>;
 		status = "okay";
 	};
