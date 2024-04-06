@@ -222,6 +222,17 @@
 	vcc-pg-supply = <&reg_bldo3>;
 	vcc-pl-supply = <&reg_aldo1>;
 	vcc-pm-supply = <&reg_bldo3>;
+	input-debounce = \
+		<0>, /* PB - default */
+		<1>, /* PF - 1mS, switch to hosc clock source */
+		<0>, /* PG - default */
+		<1>; /* PH - 1mS, switch to hosc clock source */
+};
+
+&r_pio {
+	input-debounce = \
+		<0>, /* PL - default */
+		<0>; /* PM - default */
 };
 
 &pwm {
@@ -397,8 +408,8 @@
 		spi-max-frequency = <500000>;
 		interrupt-parent = <&pio>;
 		interrupt-names = "ts-irq";
-		interrupts = <7 3 IRQ_TYPE_LEVEL_LOW>; /* PD21 connected to CS0 */
-		pendown-gpio = <&pio 3 21 GPIO_ACTIVE_LOW>;
+		interrupts = <7 3 IRQ_TYPE_LEVEL_LOW>;		/* PH3 - interrupt */
+		pendown-gpio = <&pio 3 21 GPIO_ACTIVE_LOW>;	/* PD21 default to CS0 */
 		compatible = "ti,tsc2046";
 		vcc-supply = <&reg_vcc33_wifi>;
 
@@ -436,3 +447,4 @@
 &usb3phy {
 	status = "okay";
 };
+
