@@ -21,6 +21,8 @@
 		serial2 = &r_uart;	/* MDA controller */
 		mmc0 = &mmc2;		/* eMMC    */
 		mmc1 = &mmc0;		/* SD-Card */
+		rtc0 = &ext_rtc;	/* external RTC */
+		rtc1 = &rtc;		/* internal RTC */
 	};
 
 	chosen {
@@ -169,11 +171,11 @@
 	};
 };
 
-&i2c3 {
+&i2c3 { /* Internal I2C interface with embedded AC200 MFD */
 	status = "okay";
 };
 
-&i2s3 {
+&i2s3 { /* Internal I2S interface to AC200 analog codec */
 	status = "okay";
 };
 
@@ -382,6 +384,16 @@
 
 &i2c0 { /* PD25 SCK, PD26 SDA or pin 5 and 3 of 26pin connector */
 	status = "okay";
+
+	/* external RTC module have both EEPROM and RTC chips */
+	ext_rtc: rtc@68 {
+		compatible = "dalas,ds1307";
+		reg = <0x68>;
+	};
+	eeprom@50 {
+		compatible = "atmel,at24c32";
+		reg = <0x50>;
+	};
 };
 
 /*
@@ -447,4 +459,3 @@
 &usb3phy {
 	status = "okay";
 };
-
