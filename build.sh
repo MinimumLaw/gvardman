@@ -5,7 +5,7 @@ if [ -z $BUILDROOT_BASE ]; then
 fi
 
 if [ -z $BUILDROOT_BRANCH ]; then
-    export BUILDROOT_BRANCH=2023.11.x
+    export BUILDROOT_BRANCH=2024.02.x
 fi
 
 export BUILDROOT_EXT_TREE=`pwd`
