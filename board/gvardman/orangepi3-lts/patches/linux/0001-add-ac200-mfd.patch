@@ -1,6 +1,6 @@
---- linux-6.6.21/drivers/mfd/Kconfig	2024-03-06 17:48:45.000000000 +0300
-+++ 6.6__sunxi64__arm64/drivers/mfd/Kconfig	2024-03-08 17:36:01.172855138 +0300
-@@ -191,6 +191,18 @@ config MFD_AC100
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -203,6 +203,18 @@ config MFD_AC100
  	  This driver include only the core APIs. You have to select individual
  	  components like codecs or RTC under the corresponding menus.
  
@@ -19,9 +19,9 @@
  config MFD_AXP20X
  	tristate
  	select MFD_CORE
---- linux-6.6.21/drivers/mfd/Makefile	2024-03-06 17:48:45.000000000 +0300
-+++ 6.6__sunxi64__arm64/drivers/mfd/Makefile	2024-03-08 17:36:01.172855138 +0300
-@@ -140,6 +140,7 @@ obj-$(CONFIG_MFD_DA9052_SPI)	+= da9052-s
+--- a/drivers/mfd/Makefile
++++ b/drivers/mfd/Makefile
+@@ -145,6 +145,7 @@ obj-$(CONFIG_MFD_DA9052_SPI)	+= da9052-spi.o
  obj-$(CONFIG_MFD_DA9052_I2C)	+= da9052-i2c.o
  
  obj-$(CONFIG_MFD_AC100)		+= ac100.o
@@ -29,8 +29,8 @@
  obj-$(CONFIG_MFD_AXP20X)	+= axp20x.o
  obj-$(CONFIG_MFD_AXP20X_I2C)	+= axp20x-i2c.o
  obj-$(CONFIG_MFD_AXP20X_RSB)	+= axp20x-rsb.o
---- linux-6.6.21/drivers/mfd/ac200.c	1970-01-01 03:00:00.000000000 +0300
-+++ 6.6__sunxi64__arm64/drivers/mfd/ac200.c	2024-03-08 17:36:01.172855138 +0300
+--- /dev/null
++++ b/drivers/mfd/ac200.c
 @@ -0,0 +1,190 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*

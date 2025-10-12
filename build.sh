@@ -5,7 +5,7 @@ if [ -z $BUILDROOT_BASE ]; then
 fi
 
 if [ -z $BUILDROOT_BRANCH ]; then
-    export BUILDROOT_BRANCH=2024.02.x
+    export BUILDROOT_BRANCH=2025.02.x
 fi
 
 export BUILDROOT_EXT_TREE=`pwd`
@@ -17,11 +17,11 @@ echo Actualise buildroot
 mkdir -p ${BUILDROOT_BASE}
 pushd ${BUILDROOT_BASE}
 if [ -x .git ]; then
-git pull
+    echo git pull
 else
-git clone https://git.buildroot.net/buildroot
+    git clone https://git.buildroot.net/buildroot
 fi
-git checkout ${BUILDROOT_BRANCH}
+    git checkout ${BUILDROOT_BRANCH}
 popd
 
 mkdir -p ${OUTPUT_DIR}

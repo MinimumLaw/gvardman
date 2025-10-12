@@ -1,0 +1,155 @@
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..b251794
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,10 @@
++Makefile
++
++bin
++lib
++
++CMakeFiles
++CMakeCache.txt
++cmake_install.cmake
++
++gui/*.depends
+\ No newline at end of file
+diff --git a/.gitlab-ci.yml b/.gitlab-ci.yml
+index 23e3b21..c8b948a 100644
+--- a/.gitlab-ci.yml
++++ b/.gitlab-ci.yml
+@@ -18,7 +18,7 @@ build_app:
+     - ssh  root@192.168.230.37 "if [[ -d  /data/compile/test_ci-cd ]]; then rm -rf /data/compile/test_ci-cd; fi"
+     - ssh  root@192.168.230.37 "cd /data/compile/ &&  git clone ssh://git@gitlab-redguard-test.web.lan:2222/Lyamaev.Dmitriy/test_ci-cd.git"
+     - ssh  root@192.168.230.37 "cd /data/compile/test_ci-cd/gui && git checkout ${CI_COMMIT_BRANCH} &&  ./build.sh"
+-    - send_mail_cmd="echo \"Тут лежит бинарник sapus\" | mutt -s \"Бинарник sapus\" -a \"/data/compile/test_ci-cd/gui/build/bin/sapus\" --  $SEND_EMAIL_TO"
++    - send_mail_cmd="echo \"Тут лежит бинарник sapus , из ветки ${CI_COMMIT_BRANCH}\" | mutt -s \"Бинарник sapus, из ветки ${CI_COMMIT_BRANCH}\" -a \"/data/compile/test_ci-cd/gui/build/bin/sapus\" --  $SEND_EMAIL_TO"
+     - ssh  root@192.168.230.37 $send_mail_cmd
+   after_script:
+     - rm -rf ~/.ssh
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+new file mode 100644
+index 0000000..ab7cb6c
+--- /dev/null
++++ b/CMakeLists.txt
+@@ -0,0 +1,56 @@
++cmake_minimum_required(VERSION 3.7.0 FATAL_ERROR)
++
++set(EXTRA_MODULES_DIR ${CMAKE_CURRENT_LIST_DIR}/cmake)
++list(APPEND CMAKE_MODULE_PATH ${EXTRA_MODULES_DIR})
++list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
++
++#==================================================
++# Задать тип сборки задан перед вызовом ConanConfig
++# Release/Debug
++#==================================================
++include(BuildConfig)
++
++project(sapus
++    LANGUAGES CXX C
++    VERSION 0.0.7
++)
++
++include(CompilerConfig)
++include(OutputDirConfig)
++
++include(DependencyConfig)
++
++execute_process(COMMAND "git" "rev-parse" "HEAD"
++  WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
++  OUTPUT_VARIABLE GIT_SHA1
++  OUTPUT_STRIP_TRAILING_WHITESPACE)
++add_definitions(-DGIT_VERSION="${GIT_SHA1}")
++
++add_subdirectory(gui/src/app/logic)
++add_subdirectory(gui/src/app/views)
++#enable_testing()
++add_custom_target(everything DEPENDS
++  target
++  )
++
++if(WIN32)
++  target_link_libraries(${PROJECT_EXECUTABLE} PRIVATE Dwmapi.lib)
++  set_target_properties(
++    ${PROJECT_EXECUTABLE} PROPERTIES
++    WIN32_EXECUTABLE TRUE
++  )
++elseif(UNIX)
++  install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/local/bin)
++#  install(
++#    FILES ${CMAKE_CURRENT_SOURCE_DIR}/gui/deploy/linux/sapus.svg
++#    DESTINATION share/pixmaps
++#  )
++#  install(
++#    FILES ${CMAKE_CURRENT_SOURCE_DIR}/gui/deploy/linux/sapus.metainfo.xml
++#    DESTINATION share/metainfo
++#  )
++#install(
++#  FILES ${CMAKE_CURRENT_SOURCE_DIR}/gui/deploy/linux/sapus.desktop
++#  DESTINATION share/applications
++#)
++endif()
+diff --git a/cmake/BuildConfig.cmake b/cmake/BuildConfig.cmake
+new file mode 120000
+index 0000000..bb72b50
+--- /dev/null
++++ b/cmake/BuildConfig.cmake
+@@ -0,0 +1 @@
++../gui/cmake/BuildConfig.cmake
+\ No newline at end of file
+diff --git a/cmake/CompilerConfig.cmake b/cmake/CompilerConfig.cmake
+new file mode 120000
+index 0000000..b778e28
+--- /dev/null
++++ b/cmake/CompilerConfig.cmake
+@@ -0,0 +1 @@
++../gui/cmake/CompilerConfig.cmake
+\ No newline at end of file
+diff --git a/cmake/DependencyConfig.cmake b/cmake/DependencyConfig.cmake
+new file mode 100644
+index 0000000..cb5dab1
+--- /dev/null
++++ b/cmake/DependencyConfig.cmake
+@@ -0,0 +1 @@
++find_package(Boost REQUIRED)
+diff --git a/cmake/OutputDirConfig.cmake b/cmake/OutputDirConfig.cmake
+new file mode 120000
+index 0000000..57cea76
+--- /dev/null
++++ b/cmake/OutputDirConfig.cmake
+@@ -0,0 +1 @@
++../gui/cmake/OutputDirConfig.cmake
+\ No newline at end of file
+diff --git a/cmake/common.cmake b/cmake/common.cmake
+new file mode 100644
+index 0000000..1f01f56
+--- /dev/null
++++ b/cmake/common.cmake
+@@ -0,0 +1,26 @@
++set(this_target common)
++
++set(${this_target}_sources
++  ${PROJECT_SOURCE_DIR}/gui/src/common/gen_libs/protocols/network_protocol.pb.c
++  ${PROJECT_SOURCE_DIR}/gui/src/common/libs/checksum/checksum.cpp
++  ${PROJECT_SOURCE_DIR}/gui/src/common/.pio/libdeps/native/Nanopb/pb_common.c
++  ${PROJECT_SOURCE_DIR}/gui/src/common/.pio/libdeps/native/Nanopb/pb_decode.c
++  ${PROJECT_SOURCE_DIR}/gui/src/common/.pio/libdeps/native/Nanopb/pb_encode.c
++)
++
++set(${this_target}_headers)
++
++add_library(
++  ${this_target} STATIC
++  ${${this_target}_headers}
++  ${${this_target}_sources})
++
++target_include_directories(
++  ${this_target}
++  PUBLIC ${PROJECT_SOURCE_DIR}/gui/src/common/gen_libs/protocols
++  PUBLIC ${PROJECT_SOURCE_DIR}/gui/src/common/libs/units
++  PUBLIC ${PROJECT_SOURCE_DIR}/gui/src/common/libs/checksum
++  PUBLIC ${PROJECT_SOURCE_DIR}/gui/src/common/libs/framing
++  PUBLIC ${PROJECT_SOURCE_DIR}/gui/src/common/libs/proto_traits
++  PUBLIC ${PROJECT_SOURCE_DIR}/gui/src/common/.pio/libdeps/native/Nanopb
++  INTERFACE $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
