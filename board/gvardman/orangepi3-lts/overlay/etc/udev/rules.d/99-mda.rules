@@ -1,0 +1,1 @@
+ACTION=="add", SUBSYSTEM=="block", KERNEL=="mmcblk1p3", RUN+="/usr/local/bin/mda-start.sh"
