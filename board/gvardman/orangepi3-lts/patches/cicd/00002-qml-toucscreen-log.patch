@@ -1,0 +1,61 @@
+diff --git a/gui/src/app/views/MainWindow.qml b/gui/src/app/views/MainWindow.qml
+index 5cb9828..a62ad4b 100644
+--- a/gui/src/app/views/MainWindow.qml
++++ b/gui/src/app/views/MainWindow.qml
+@@ -26,9 +26,14 @@ ApplicationWindow {
+         return path.join("/");
+     }
+ 
++	MouseArea {
++		anchors.fill: parent
++		onPressed:  console.log("AppWindow  pressed  at (", mouseX,",", mouseY,")")
++		onReleased: console.log("AppWindowd released at (", mouseX,",", mouseY,")")
++	}
+ 
+     Component.onCompleted: {
+-	console.log("Path:", getPath(mainWindow))
++	console.log("Path:", getPath(applicationWindow))
+     }
+ 
+     AutoResize{
+diff --git a/gui/src/app/views/controls/MainHeader.qml b/gui/src/app/views/controls/MainHeader.qml
+index e7509d9..351d22d 100644
+--- a/gui/src/app/views/controls/MainHeader.qml
++++ b/gui/src/app/views/controls/MainHeader.qml
+@@ -34,6 +34,11 @@ Control {
+             source: GuiStateContainer.is_using_fake_data ? 'qrc:/images/debug.svg' : 'qrc:/images/Logo.png'
+         }
+         onClicked: menuClicked()
++	MouseArea {
++		anchors.fill: parent
++		onPressed:  console.log("Debug Button pressed")
++		onReleased: console.log("Debug Button released")
++	}
+     }
+ 
+     HeaderButton {
+@@ -46,6 +51,11 @@ Control {
+         width: 168; height: 40
+         text: pageStack.currentMode.acronym
+         onClicked: modeSelectionClicked()
++	MouseArea {
++		anchors.fill: parent
++		onPressed:  console.log("modeSelect Button pressed")
++		onReleased: console.log("modeSelect Button released")
++	}
+ 
+         contentItem: Item {
+             anchors.centerIn: parent
+@@ -93,6 +103,12 @@ Control {
+           return (alarm == null) ? 0 : alarm.remainingSilenceMs
+         }
+         onClicked: console.log("Alarm Button clicked")
++	MouseArea {
++		anchors.fill: parent
++		onPressed:  console.log("Alarm Button pressed")
++		onReleased: console.log("Alarm Button released")
++	}
++
+     }
+ 
+ }

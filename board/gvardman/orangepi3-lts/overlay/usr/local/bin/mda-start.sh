@@ -9,8 +9,16 @@
 
 # export path with scripts
 export PATH='/usr/local/bin':$PATH
+export TSLIB_TSEVENTTYPE=INPUT
+export TSLIB_FBDEVICE=/dev/fb0
 export TSLIB_TSDEVICE=/dev/input/event1
 export TSLIB_CALIBFILE=/mnt/touchscreen.calibration
+export TSLIB_CONFFILE=/etc/ts.conf
+export TSLIB_PLUGINDIR=/usr/lib/ts
+# export QT_QPA_PLATFORM=linuxfb
+export QT_QPA_GENERIC_PLUGINS=tslib:/dev/input/event1
+export QT_QPA_EGLFS_NO_LIBINPUT=1
+export QT_QPA_EGLFS_TSLIB=1
 
 # restore alsa mixer settings
 /usr/sbin/alsactl -U restore
@@ -19,8 +27,9 @@ export TSLIB_CALIBFILE=/mnt/touchscreen.calibration
 killall mda
 
 if [ -f $TSLIB_CALIBFILE ]; then
-    echo Use savved touchscreen calibration
+    echo Use saved touchscreen calibration
 else
+    echo Calibrate touchscreen parameters
     /usr/local/bin/remount_storage_read_write.sh
     ts_calibrate
     /usr/local/bin/remount_storage_read_only.sh
