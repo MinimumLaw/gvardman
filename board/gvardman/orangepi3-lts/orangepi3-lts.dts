@@ -397,7 +397,7 @@
 &spi1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&spi1_pins>;
-	cs-gpios = <&r_pio 0 8 GPIO_ACTIVE_LOW>;	/* CS0 - PL8 */
+	cs-gpios = <&r_pio 0 8 GPIO_ACTIVE_LOW>;		/* CS0 - PL8 */
 	num-cs = <1>;
 	status = "okay";
 	#address-cells = <1>;
@@ -412,15 +412,6 @@
 		pendown-gpio = <&pio 3 21 GPIO_ACTIVE_LOW>;	/* PD21 default to CS0 */
 		compatible = "ti,tsc2046";
 		vcc-supply = <&reg_vcc33_wifi>;
-
-		/* Generic tuning */
-		touchscreen-average-samples = <100>;
-		/* Vendor specific tuning */
-		ti,x-plate-ohms = /bits/ 16 <60>;
-		ti,debounce-tol = /bits/ 16 <2>;
-		ti,debounce-rep = /bits/ 16 <1>;
-		ti,settle-delay-usec = /bits/ 16 <20>;
-		ti,penirq-recheck-delay-usecs = /bits/ 16 <20>;
 
 		status = "okay";
 	};
